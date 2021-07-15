@@ -1,1 +1,1 @@
-# GolangRestfulServer
+# Golang RESTful API Server for Application Metadata
