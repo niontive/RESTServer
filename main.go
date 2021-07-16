@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const port = "10000"
+const port = ":10000"
 
 type AppMetaData struct {
 	Title       string `yaml:"title"`
@@ -29,7 +29,7 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 
 func handleRequests() {
 	http.HandleFunc("/", homePage)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(port, nil))
 }
 
 func main() {
