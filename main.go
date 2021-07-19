@@ -22,11 +22,13 @@ func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
 	err := yaml.Unmarshal(reqBody, &data)
 	if err != nil {
 		logger.Warnf("Unable to unmarhsall POST request: %v", err)
+		return
 	}
 	logger.Info("Unmarshalled POST request")
 	err = validateAppMetaData(data)
 	if err != nil {
 		logger.Warnf("Failed to validate app metadata: %v", err)
+		return
 	}
 	AppMetaDataStore = append(AppMetaDataStore, data)
 	logger.Infof("Stored metadata for app '%v'", data.Title)
