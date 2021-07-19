@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"net/mail"
 	"strings"
 )
 
@@ -26,6 +27,11 @@ func checkEmptyString(str string) error {
 		return errors.New("Empty string")
 	}
 	return nil
+}
+
+func checkEmail(email string) error {
+	_, err := mail.ParseAddress(email)
+	return err
 }
 
 func validateTitle(title string) error {
@@ -53,6 +59,9 @@ func validateMaintainers(maintainers []maintainer) error {
 		}
 		if checkEmptyString(element.Email) != nil {
 			return errors.New("Empty email in maintainer")
+		}
+		if checkEmail(element.Email) != nil {
+			return errors.New("Invalid email")
 		}
 	}
 	return nil
