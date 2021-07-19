@@ -1,36 +1,37 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
 
 const port = ":10000"
 
+var logger = logrus.New()
+
 func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
+	logger.Info("Endpoint Hit: createNewAppMetaData")
 	reqBody, _ := ioutil.ReadAll(r.Body)
-	fmt.Println(string(reqBody))
 	data := AppMetaData{}
 	err := yaml.Unmarshal(reqBody, &data)
 	if err != nil {
-		log.Fatalf("Unable to unmarhsall POST request: %v", err)
+		logger.Warnf("Unable to unmarhsall POST request: %v", err)
 	}
-	fmt.Println("Unmarshalled POST request")
+	logger.Info("Unmarshalled POST request")
 	err = validateAppMetaData(data)
 	if err != nil {
-		log.Fatalf("Failed to validate app meta data")
+		logger.Warnf("Failed to validate app metadata: %v", err)
 	}
-	fmt.Println("Success!")
+	logger.Infof("Stored metadata for app '%v'", data.Title)
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to the HomePage!")
-	fmt.Println("Endpoint Hit: homePage")
+	logger.Info("Endpoint Hit: homePage")
 }
 
 func handleRequests() {
@@ -41,6 +42,6 @@ func handleRequests() {
 }
 
 func main() {
-	fmt.Println("Start server")
+	logger.Info("Start REST server")
 	handleRequests()
 }
