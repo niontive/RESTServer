@@ -41,7 +41,7 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	myRouter.HandleFunc("/", homePage)
-	myRouter.HandleFunc("/appmetadata", createNewAppMetaData).Methods("POST")
+	myRouter.HandleFunc("/createmetadata", createNewAppMetaData).Methods("POST")
 	logger.Fatal(http.ListenAndServe(port, myRouter))
 }
 
