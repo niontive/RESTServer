@@ -2,7 +2,6 @@ package main
 
 import (
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -43,7 +42,7 @@ func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	myRouter.HandleFunc("/", homePage)
 	myRouter.HandleFunc("/appmetadata", createNewAppMetaData).Methods("POST")
-	log.Fatal(http.ListenAndServe(port, myRouter))
+	logger.Fatal(http.ListenAndServe(port, myRouter))
 }
 
 func main() {
