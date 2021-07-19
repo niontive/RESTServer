@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net/mail"
+	"net/url"
 	"strings"
 )
 
@@ -31,6 +32,11 @@ func checkEmptyString(str string) error {
 
 func checkEmail(email string) error {
 	_, err := mail.ParseAddress(email)
+	return err
+}
+
+func checkURL(URL string) error {
+	_, err := url.ParseRequestURI(URL)
 	return err
 }
 
@@ -78,12 +84,18 @@ func validateWebsite(website string) error {
 	if checkEmptyString(website) != nil {
 		return errors.New("Empty website")
 	}
+	if checkURL(website) != nil {
+		return errors.New("Invalid website URL")
+	}
 	return nil
 }
 
 func validateSource(source string) error {
 	if checkEmptyString(source) != nil {
 		return errors.New("Empty source")
+	}
+	if checkURL(source) != nil {
+		return errors.New("Invalid source URL")
 	}
 	return nil
 }
