@@ -13,6 +13,7 @@ import (
 const port = ":10000"
 
 var logger = logrus.New()
+var AppMetaDataStore = []AppMetaData{}
 
 func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
 	logger.Info("Endpoint Hit: createNewAppMetaData")
@@ -27,7 +28,9 @@ func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.Warnf("Failed to validate app metadata: %v", err)
 	}
+	AppMetaDataStore = append(AppMetaDataStore, data)
 	logger.Infof("Stored metadata for app '%v'", data.Title)
+	logger.Infof("App metadata store contains %v entries", len(AppMetaDataStore))
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
