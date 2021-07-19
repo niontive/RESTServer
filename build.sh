@@ -7,13 +7,13 @@ OUTDIR="bin/"
 OUTFILE="server"
 
 # Files to build
-MAIN="main.go"
+FILES="main.go metadata.go"
 
 # Programs used for building
 GO="/bin/go"
 
 build_main() {
-    ${GO} build -o ${OUTDIR}${OUTFILE} ${MAIN}
+    ${GO} build -o ${OUTDIR}${OUTFILE} ${FILES}
 }
 
 # Begin script execution
