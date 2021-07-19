@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 const port = ":10000"
@@ -14,8 +16,9 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRequests() {
-	http.HandleFunc("/", homePage)
-	log.Fatal(http.ListenAndServe(port, nil))
+	myRouter := mux.NewRouter().StrictSlash(true)
+	myRouter.HandleFunc("/", homePage)
+	log.Fatal(http.ListenAndServe(port, myRouter))
 }
 
 func main() {
