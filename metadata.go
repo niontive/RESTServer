@@ -145,12 +145,12 @@ func validateAppMetaData(data AppMetaData) (err error) {
 		return err
 	}
 
-	err = validateDescription(data.Description)
+	err = validateLicense(data.Source)
 	if err != nil {
 		return err
 	}
 
-	err = validateSource(data.Source)
+	err = validateDescription(data.Description)
 	if err != nil {
 		return err
 	}
