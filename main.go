@@ -34,6 +34,10 @@ func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
 	logger.Infof("App metadata store contains %v entries", len(AppMetaDataStore))
 }
 
+func getAppMetaData(w http.ResponseWriter, r *http.Request) {
+	logger.Info("EndpointHit: getAppMetaData")
+}
+
 func homePage(w http.ResponseWriter, r *http.Request) {
 	logger.Info("Endpoint Hit: homePage")
 }
@@ -42,6 +46,7 @@ func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
 	myRouter.HandleFunc("/", homePage)
 	myRouter.HandleFunc("/createmetadata", createNewAppMetaData).Methods("POST")
+	myRouter.HandleFunc("/getmetadata", getAppMetaData).Methods("GET")
 	logger.Fatal(http.ListenAndServe(port, myRouter))
 }
 
