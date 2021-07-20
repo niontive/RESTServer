@@ -11,13 +11,15 @@ import (
 
 const port = ":10000"
 
-var logger = logrus.New()
-var AppMetaDataStore = []AppMetaData{}
+var (
+	dataStore = appMetaDataStore{store: make([]appMetaData, 0)}
+	logger    = logrus.New()
+)
 
 func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
 	logger.Info("Endpoint Hit: createNewAppMetaData")
 	reqBody, _ := ioutil.ReadAll(r.Body)
-	data := AppMetaData{}
+	data := appMetaData{}
 	err := yaml.Unmarshal(reqBody, &data)
 	if err != nil {
 		logger.Warnf("Unable to unmarhsall POST request: %v", err)
@@ -29,9 +31,9 @@ func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
 		logger.Warnf("Failed to validate app metadata: %v", err)
 		return
 	}
-	AppMetaDataStore = append(AppMetaDataStore, data)
+	dataStore.Add(data)
 	logger.Infof("Stored metadata for app '%v'", data.Title)
-	logger.Infof("App metadata store contains %v entries", len(AppMetaDataStore))
+	logger.Infof("App metadata store contains %v entries", dataStore.TotalEntries())
 }
 
 func getAppMetaData(w http.ResponseWriter, r *http.Request) {

@@ -5,6 +5,7 @@ import (
 	"net/mail"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 type maintainer struct {
@@ -12,7 +13,7 @@ type maintainer struct {
 	Email string `yaml:"email"`
 }
 
-type AppMetaData struct {
+type appMetaData struct {
 	Title       string `yaml:"title"`
 	Version     string `yaml:"version"`
 	Maintainers []maintainer
@@ -21,6 +22,23 @@ type AppMetaData struct {
 	Source      string `yaml:"source"`
 	License     string `yaml:"license"`
 	Description string `yaml:"description"`
+}
+
+type appMetaDataStore struct {
+	sync.RWMutex
+	store []appMetaData
+}
+
+func (mdStore *appMetaDataStore) Add(md appMetaData) {
+	mdStore.Lock()
+	defer mdStore.Unlock()
+	mdStore.store = append(mdStore.store, md)
+}
+
+func (mdStore *appMetaDataStore) TotalEntries() int {
+	mdStore.RLock()
+	defer mdStore.RUnlock()
+	return len(mdStore.store)
 }
 
 func checkEmptyString(str string) error {
@@ -114,7 +132,7 @@ func validateDescription(description string) error {
 	return nil
 }
 
-func validateAppMetaData(data AppMetaData) (err error) {
+func validateAppMetaData(data appMetaData) (err error) {
 	err = validateTitle(data.Title)
 	if err != nil {
 		return err
