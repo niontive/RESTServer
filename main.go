@@ -38,6 +38,7 @@ func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
 
 func getAppMetaData(w http.ResponseWriter, r *http.Request) {
 	logger.Info("EndpointHit: getAppMetaData")
+	logger.Infof("Query params: %v", r.URL.Query())
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
