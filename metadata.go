@@ -25,20 +25,85 @@ type appMetaData struct {
 }
 
 type appMetaDataStore struct {
-	sync.RWMutex
-	store []appMetaData
+	store     []appMetaData
+	storeLock sync.RWMutex
 }
 
 func (mdStore *appMetaDataStore) Add(md appMetaData) {
-	mdStore.Lock()
-	defer mdStore.Unlock()
+	mdStore.storeLock.Lock()
+	defer mdStore.storeLock.Unlock()
 	mdStore.store = append(mdStore.store, md)
 }
 
 func (mdStore *appMetaDataStore) TotalEntries() int {
-	mdStore.RLock()
-	defer mdStore.RUnlock()
+	mdStore.storeLock.RLock()
+	defer mdStore.storeLock.RUnlock()
 	return len(mdStore.store)
+}
+
+func (mdStore *appMetaDataStore) Search(key string, values []string) (md []appMetaData, err error) {
+	mdStore.storeLock.RLock()
+	defer mdStore.storeLock.RUnlock()
+
+	if mdStore.TotalEntries() == 0 {
+		err = errors.New("MD store is empty")
+		return md, err
+	}
+
+	for _, element := range mdStore.store {
+		for _, v := range values {
+			switch {
+			case key == "title":
+				if element.Title == v {
+					md = append(md, element)
+				}
+			case key == "version":
+				if element.Version == v {
+					md = append(md, element)
+				}
+			case key == "name":
+				for _, m := range element.Maintainers {
+					if m.Name == v {
+						md = append(md, element)
+					}
+				}
+			case key == "email":
+				for _, m := range element.Maintainers {
+					if m.Email == v {
+						md = append(md, element)
+					}
+				}
+			case key == "company":
+				if element.Company == v {
+					md = append(md, element)
+				}
+			case key == "website":
+				if element.Website == v {
+					md = append(md, element)
+				}
+			case key == "source":
+				if element.Source == v {
+					md = append(md, element)
+				}
+			case key == "license":
+				if element.License == v {
+					md = append(md, element)
+				}
+			case key == "description":
+				if element.License == v {
+					md = append(md, element)
+				}
+			default:
+				err = errors.New("Invalid key")
+			}
+		}
+	}
+
+	if len(md) == 0 {
+		err = errors.New("No metadata found")
+	}
+
+	return md, err
 }
 
 func checkEmptyString(str string) error {
