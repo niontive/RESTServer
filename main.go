@@ -52,6 +52,9 @@ func getAppMetaData(w http.ResponseWriter, r *http.Request) {
 			logger.Warnf("Unable to find metadata for key '%v': %v", k, err)
 		}
 	}
+	for _, data := range retrievedMetaData {
+		yaml.NewEncoder(w).Encode(data)
+	}
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
