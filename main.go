@@ -39,22 +39,23 @@ func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
 func getAppMetaData(w http.ResponseWriter, r *http.Request) {
 	logger.Info("EndpointHit: getAppMetaData")
 	query := r.URL.Query()
-	retrievedMetaData := []appMetaData{}
 	tmpMetaData := []appMetaData{}
+	encoder := yaml.NewEncoder(w)
 	for k, e := range query {
 		var err error
 		logger.Infof("Query key: %v. Query value: %v.", k, e)
 		tmpMetaData, err = dataStore.Search(k, e)
 		if err == nil {
-			retrievedMetaData = append(retrievedMetaData, tmpMetaData...)
 			logger.Infof("Found metadata for key %v", k)
+			for _, data := range tmpMetaData {
+				encoder.Encode(data)
+			}
+
 		} else {
 			logger.Warnf("Unable to find metadata for key '%v': %v", k, err)
 		}
 	}
-	for _, data := range retrievedMetaData {
-		yaml.NewEncoder(w).Encode(data)
-	}
+	encoder.Close()
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
