@@ -1,20 +1,5 @@
 #!/bin/sh
 
-# Output directory
-OUTDIR="bin/"
+export DOCKER_BUILDKIT=1
 
-# Executable name
-OUTFILE="server"
-
-# Files to build
-FILES="main.go metadata.go"
-
-# Programs used for building
-GO="/bin/go"
-
-build_main() {
-    ${GO} build -o ${OUTDIR}${OUTFILE} ${FILES}
-}
-
-# Begin script execution
-build_main
+docker build --target bin --output bin/ .
