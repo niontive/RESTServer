@@ -25,20 +25,52 @@ type appMetaData struct {
 }
 
 type appMetaDataStore struct {
-	store     []appMetaData
-	storeLock sync.RWMutex
+	store      []appMetaData
+	dupTracker map[string]bool
+	storeLock  sync.RWMutex
+	dupLock    sync.RWMutex
 }
 
-func (mdStore *appMetaDataStore) Add(md appMetaData) {
+func (mdStore *appMetaDataStore) checkDuplicate(md appMetaData) (err error) {
+	mdStore.dupLock.RLock()
+	if _, value := mdStore.dupTracker[md.Title]; !value {
+		mdStore.dupLock.RUnlock()
+		mdStore.dupLock.Lock()
+		mdStore.dupTracker[md.Title] = true
+		mdStore.dupLock.Unlock()
+	} else {
+		err = errors.New("Duplicate value")
+		mdStore.dupLock.RUnlock()
+	}
+	return
+}
+
+func (mdStore *appMetaDataStore) Add(md appMetaData) (err error) {
 	mdStore.storeLock.Lock()
 	defer mdStore.storeLock.Unlock()
+	err = mdStore.checkDuplicate(md)
+	if err != nil {
+		return
+	}
 	mdStore.store = append(mdStore.store, md)
+	return
 }
 
 func (mdStore *appMetaDataStore) TotalEntries() int {
 	mdStore.storeLock.RLock()
 	defer mdStore.storeLock.RUnlock()
 	return len(mdStore.store)
+}
+
+func (mdStore *appMetaDataStore) GetAppTitles() (titles []string) {
+	mdStore.storeLock.RLock()
+	defer mdStore.storeLock.RUnlock()
+
+	for _, element := range mdStore.store {
+		titles = append(titles, element.Title)
+	}
+
+	return
 }
 
 func (mdStore *appMetaDataStore) Search(key string, values []string) (md []appMetaData, err error) {
@@ -239,4 +271,22 @@ func validateAppMetaData(data appMetaData) (err error) {
 	}
 
 	return err
+}
+
+func replaceUnderscore(k string, v []string) []string {
+	switch k {
+	case "title":
+		fallthrough
+	case "name":
+		fallthrough
+	case "company":
+		fallthrough
+	case "description":
+		for idx, value := range v {
+			v[idx] = strings.Replace(value, "_", " ", -1)
+		}
+		return v
+	default:
+		return v
+	}
 }

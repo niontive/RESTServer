@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -12,7 +13,7 @@ import (
 const port = ":10000"
 
 var (
-	dataStore = appMetaDataStore{store: make([]appMetaData, 0)}
+	dataStore = appMetaDataStore{store: make([]appMetaData, 0), dupTracker: make(map[string]bool)}
 	logger    = logrus.New()
 )
 
@@ -31,7 +32,11 @@ func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
 		logger.Warnf("Failed to validate app metadata: %v", err)
 		return
 	}
-	dataStore.Add(data)
+	err = dataStore.Add(data)
+	if err != nil {
+		logger.Warnf("Failed to add app metadata: %v", err)
+		return
+	}
 	logger.Infof("Stored metadata for app '%v'", data.Title)
 	logger.Infof("App metadata store contains %v entries", dataStore.TotalEntries())
 }
@@ -41,10 +46,12 @@ func getAppMetaData(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	tmpMetaData := []appMetaData{}
 	encoder := yaml.NewEncoder(w)
-	for k, e := range query {
+	for k, v := range query {
 		var err error
-		logger.Infof("Query key: %v. Query value: %v.", k, e)
-		tmpMetaData, err = dataStore.Search(k, e)
+		// Underscore character is treated as a space for certain fields
+		v = replaceUnderscore(k, v)
+		logger.Infof("Query key: %v. Query value: %v.", k, v)
+		tmpMetaData, err = dataStore.Search(k, v)
 		if err == nil {
 			logger.Infof("Found metadata for key %v", k)
 			for _, data := range tmpMetaData {
@@ -60,6 +67,16 @@ func getAppMetaData(w http.ResponseWriter, r *http.Request) {
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	logger.Info("Endpoint Hit: homePage")
+	if dataStore.TotalEntries() == 0 {
+		fmt.Fprintf(w, "No application meta data stored!")
+	} else {
+		// Obtain and display application titles
+		fmt.Fprintf(w, "Available app meta data:\n")
+		titles := dataStore.GetAppTitles()
+		for _, element := range titles {
+			fmt.Fprintf(w, element+"\n")
+		}
+	}
 }
 
 func handleRequests() {
