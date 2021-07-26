@@ -1,20 +1,25 @@
 #!/bin/sh
 
-# Output directory
-OUTDIR="bin/"
+export DOCKER_BUILDKIT=1
 
-# Executable name
-OUTFILE="server"
-
-# Files to build
-FILES="main.go metadata.go"
-
-# Programs used for building
-GO="/bin/go"
-
-build_main() {
-    ${GO} build -o ${OUTDIR}${OUTFILE} ${FILES}
+build_server() {
+    docker build --target bin --output bin/ .
 }
 
-# Begin script execution
-build_main
+run_unit_tests() {
+    docker build --progress=plain --target unit-test .
+}
+
+clean() {
+    rm -rf ./bin
+    docker builder prune -f
+}
+
+while getopts "btc" flag
+do
+    case "${flag}" in
+        b) build_server;;
+        t) run_unit_tests;;
+        c) clean;;
+    esac
+done
