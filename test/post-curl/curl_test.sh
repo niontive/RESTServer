@@ -9,7 +9,8 @@ declare -a yaml_files=("invalid1.yaml" \
 
 # Start RESTful server
 start_server() {
-    ../bin/server
+    # TODO: make this configurable
+    ../../bin/server
 }
 
 # Test POST method
