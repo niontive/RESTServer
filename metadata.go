@@ -25,14 +25,35 @@ type appMetaData struct {
 }
 
 type appMetaDataStore struct {
-	store     []appMetaData
-	storeLock sync.RWMutex
+	store      []appMetaData
+	dupTracker map[string]bool
+	storeLock  sync.RWMutex
+	dupLock    sync.RWMutex
 }
 
-func (mdStore *appMetaDataStore) Add(md appMetaData) {
+func (mdStore *appMetaDataStore) checkDuplicate(md appMetaData) (err error) {
+	mdStore.dupLock.RLock()
+	if _, value := mdStore.dupTracker[md.Title]; !value {
+		mdStore.dupLock.RUnlock()
+		mdStore.dupLock.Lock()
+		mdStore.dupTracker[md.Title] = true
+		mdStore.dupLock.Unlock()
+	} else {
+		err = errors.New("Duplicate value")
+		mdStore.dupLock.RUnlock()
+	}
+	return
+}
+
+func (mdStore *appMetaDataStore) Add(md appMetaData) (err error) {
 	mdStore.storeLock.Lock()
 	defer mdStore.storeLock.Unlock()
+	err = mdStore.checkDuplicate(md)
+	if err != nil {
+		return
+	}
 	mdStore.store = append(mdStore.store, md)
+	return
 }
 
 func (mdStore *appMetaDataStore) TotalEntries() int {

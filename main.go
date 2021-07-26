@@ -13,7 +13,7 @@ import (
 const port = ":10000"
 
 var (
-	dataStore = appMetaDataStore{store: make([]appMetaData, 0)}
+	dataStore = appMetaDataStore{store: make([]appMetaData, 0), dupTracker: make(map[string]bool)}
 	logger    = logrus.New()
 )
 
@@ -32,7 +32,11 @@ func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
 		logger.Warnf("Failed to validate app metadata: %v", err)
 		return
 	}
-	dataStore.Add(data)
+	err = dataStore.Add(data)
+	if err != nil {
+		logger.Warnf("Failed to add app metadata: %v", err)
+		return
+	}
 	logger.Infof("Stored metadata for app '%v'", data.Title)
 	logger.Infof("App metadata store contains %v entries", dataStore.TotalEntries())
 }
