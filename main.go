@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -19,28 +20,41 @@ var (
 	logger    = logrus.New()
 )
 
+func doCreateNewAppMetaData(ctx context.Context, r *http.Request) error {
+	c := make(chan error, 1)
+	go func() {
+		logger.Info("Endpoint Hit: createNewAppMetaData")
+		reqBody, _ := ioutil.ReadAll(r.Body)
+		data := appMetaData{}
+		err := yaml.Unmarshal(reqBody, &data)
+		if err != nil {
+			logger.Warnf("Unable to unmarhsall POST request: %v", err)
+			c <- err
+			return
+		}
+		logger.Info("Unmarshalled POST request")
+		err = validateAppMetaData(data)
+		if err != nil {
+			logger.Warnf("Failed to validate app metadata: %v", err)
+			c <- err
+			return
+		}
+		err = dataStore.Add(data)
+		if err != nil {
+			logger.Warnf("Failed to add app metadata: %v", err)
+			c <- err
+			return
+		}
+		logger.Infof("Stored metadata for app '%v'", data.Title)
+		logger.Infof("App metadata store contains %v entries", dataStore.TotalEntries())
+		c <- err
+		return
+	}()
+	select {}
+}
+
 func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
-	logger.Info("Endpoint Hit: createNewAppMetaData")
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	data := appMetaData{}
-	err := yaml.Unmarshal(reqBody, &data)
-	if err != nil {
-		logger.Warnf("Unable to unmarhsall POST request: %v", err)
-		return
-	}
-	logger.Info("Unmarshalled POST request")
-	err = validateAppMetaData(data)
-	if err != nil {
-		logger.Warnf("Failed to validate app metadata: %v", err)
-		return
-	}
-	err = dataStore.Add(data)
-	if err != nil {
-		logger.Warnf("Failed to add app metadata: %v", err)
-		return
-	}
-	logger.Infof("Stored metadata for app '%v'", data.Title)
-	logger.Infof("App metadata store contains %v entries", dataStore.TotalEntries())
+
 }
 
 func getAppMetaData(w http.ResponseWriter, r *http.Request) {
