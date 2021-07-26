@@ -5,7 +5,6 @@ import (
 )
 
 func TestReplaceUnderscore(t *testing.T) {
-	// Test replaceUnderscore()
 	var testSlice []string
 
 	testSlice = append(testSlice, "hello_world")
