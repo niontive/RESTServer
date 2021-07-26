@@ -240,3 +240,21 @@ func validateAppMetaData(data appMetaData) (err error) {
 
 	return err
 }
+
+func replaceUnderscore(k string, v []string) []string {
+	switch k {
+	case "title":
+		fallthrough
+	case "name":
+		fallthrough
+	case "company":
+		fallthrough
+	case "description":
+		for idx, value := range v {
+			v[idx] = strings.Replace(value, "_", " ", -1)
+		}
+		return v
+	default:
+		return v
+	}
+}

@@ -41,10 +41,12 @@ func getAppMetaData(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	tmpMetaData := []appMetaData{}
 	encoder := yaml.NewEncoder(w)
-	for k, e := range query {
+	for k, v := range query {
 		var err error
-		logger.Infof("Query key: %v. Query value: %v.", k, e)
-		tmpMetaData, err = dataStore.Search(k, e)
+		// Underscore character is treated as a space for certain fields
+		v = replaceUnderscore(k, v)
+		logger.Infof("Query key: %v. Query value: %v.", k, v)
+		tmpMetaData, err = dataStore.Search(k, v)
 		if err == nil {
 			logger.Infof("Found metadata for key %v", k)
 			for _, data := range tmpMetaData {
