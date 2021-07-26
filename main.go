@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -62,6 +63,16 @@ func getAppMetaData(w http.ResponseWriter, r *http.Request) {
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	logger.Info("Endpoint Hit: homePage")
+	if dataStore.TotalEntries() == 0 {
+		fmt.Fprintf(w, "No application meta data stored!")
+	} else {
+		// Obtain and display application titles
+		fmt.Fprintf(w, "Available app meta data:\n")
+		titles := dataStore.GetAppTitles()
+		for _, element := range titles {
+			fmt.Fprintf(w, element+"\n")
+		}
+	}
 }
 
 func handleRequests() {

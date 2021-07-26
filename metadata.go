@@ -41,6 +41,17 @@ func (mdStore *appMetaDataStore) TotalEntries() int {
 	return len(mdStore.store)
 }
 
+func (mdStore *appMetaDataStore) GetAppTitles() (titles []string) {
+	mdStore.storeLock.RLock()
+	defer mdStore.storeLock.RUnlock()
+
+	for _, element := range mdStore.store {
+		titles = append(titles, element.Title)
+	}
+
+	return
+}
+
 func (mdStore *appMetaDataStore) Search(key string, values []string) (md []appMetaData, err error) {
 	mdStore.storeLock.RLock()
 	defer mdStore.storeLock.RUnlock()
