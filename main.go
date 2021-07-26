@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -11,6 +12,7 @@ import (
 )
 
 const port = "10000"
+const duration = 1 * time.Second // Timeout duration for APIs
 
 var (
 	dataStore = appMetaDataStore{store: make([]appMetaData, 0), dupTracker: make(map[string]bool)}
@@ -82,8 +84,10 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", homePage)
-	router.HandleFunc("/createmetadata", createNewAppMetaData).Methods("POST")
-	router.HandleFunc("/getmetadata", getAppMetaData).Methods("GET")
+	router.Handle("/createmetadata", http.TimeoutHandler(http.HandlerFunc(createNewAppMetaData),
+		duration, "Timeout createmetadata\n")).Methods("POST")
+	router.Handle("/getmetadata", http.TimeoutHandler(http.HandlerFunc(getAppMetaData),
+		duration, "Timeout getmetadata\n")).Methods("GET")
 	logger.Fatal(http.ListenAndServe(":"+port, limit(router)))
 }
 
