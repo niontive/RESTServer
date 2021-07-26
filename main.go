@@ -10,7 +10,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const port = ":10000"
+const port = "10000"
 
 var (
 	dataStore = appMetaDataStore{store: make([]appMetaData, 0), dupTracker: make(map[string]bool)}
@@ -80,11 +80,11 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRequests() {
-	myRouter := mux.NewRouter().StrictSlash(true)
-	myRouter.HandleFunc("/", homePage)
-	myRouter.HandleFunc("/createmetadata", createNewAppMetaData).Methods("POST")
-	myRouter.HandleFunc("/getmetadata", getAppMetaData).Methods("GET")
-	logger.Fatal(http.ListenAndServe(port, myRouter))
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/", homePage)
+	router.HandleFunc("/createmetadata", createNewAppMetaData).Methods("POST")
+	router.HandleFunc("/getmetadata", getAppMetaData).Methods("GET")
+	logger.Fatal(http.ListenAndServe(":"+port, limit(router)))
 }
 
 func main() {
