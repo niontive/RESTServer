@@ -14,7 +14,7 @@ Below are preqrequisites. Versions listed have been validated.
 Use script "build.sh" in the root directory. This script has three flags:
 * -b : build the server. This uses Docker to build in a container. Output executable is located in the ./bin folder
 * -c : clean. Removes ./bin directory and removes the Docker build cache
-* -t : run unit tests. See file "server_test.go" for unit tests.
+* -t : run unit tests. See file "server_test.go" for unit tests. Results are output to console
 
 ## Running the Server
 After building, run the server by executing "./bin/server". The server will use port 10000 on your localhost.
