@@ -34,4 +34,4 @@ A GET request to endpoint "/getmetadata" will retrieve metadata and return the Y
 would return all metadata that contains license "Apache-2.0" OR has title "Valid App 1". Do note that for certain fields,
 underscores get replaced as spaces.
 
-See the integration tests under /test for examples on performing these requests. Detailed information on what is/isn't supported and design decisions can be found under the /doc directory.
+See the integration tests under /test for examples on performing these requests. Detailed information on what is/isn't supported and design decisions can be found in file /doc/features.md.
