@@ -2,10 +2,10 @@
 trap "kill 0" EXIT
 
 # YAML files to test
-declare -a yaml_files=("invalid1.yaml" \
-                       "invalid2.yaml" \
-                       "valid1.yaml" \
-                       "valid2.yaml")
+declare -a yaml_files=("../yaml/invalid1.yaml" \
+                       "../yaml/invalid2.yaml" \
+                       "../yaml/valid1.yaml" \
+                       "../yaml/valid2.yaml")
 
 # Start RESTful server
 start_server() {
