@@ -7,8 +7,9 @@ import (
 	"golang.org/x/time/rate"
 )
 
-// Limit requests to one per 25 milliseconds
-var limiter = rate.NewLimiter(rate.Every(25*time.Millisecond), 1)
+const rateLimit = 25 // Limit requests to one per 25 milliseconds
+
+var limiter = rate.NewLimiter(rate.Every(rateLimit*time.Millisecond), 1)
 
 func limit(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
