@@ -82,7 +82,7 @@ func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
 }
 
 //
-// Retrieve metadata from metatdat store
+// Retrieve metadata from metatdata store
 //
 func doGetAppMetaData(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	c := make(chan bool) // Channel for anonymous function
