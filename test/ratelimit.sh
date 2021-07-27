@@ -3,7 +3,7 @@
 # Start RESTFul Server
 start_server() {
     # TODO: make this configurable
-    ../../bin/server
+    ../bin/server
 }
 
 # POST metadata
@@ -18,7 +18,7 @@ SERVER_PID=$!
 
 for i in {0..100}
     do
-        post_metadata "../yaml/valid1.yaml"
+        post_metadata "./yaml/valid1.yaml"
 
 done
 

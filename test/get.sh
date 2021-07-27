@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # YAML files to test
-declare -a yaml_files=("../yaml/valid1.yaml" \
-                       "../yaml/valid2.yaml")
+declare -a yaml_files=("./yaml/valid1.yaml" \
+                       "./yaml/valid2.yaml")
 
 declare -a app_titles=("Valid_App_1" \
                        "Valid_App_2")
@@ -10,7 +10,7 @@ declare -a app_titles=("Valid_App_1" \
 # Start RESTFul Server
 start_server() {
     # TODO: make this configurable
-    ../../bin/server
+    ../bin/server
 }
 
 # Test GET method
