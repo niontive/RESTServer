@@ -31,6 +31,9 @@ type appMetaDataStore struct {
 	dupLock    sync.RWMutex
 }
 
+//
+// Check if metadata already exists in store
+//
 func (mdStore *appMetaDataStore) checkDuplicate(md appMetaData) (err error) {
 	mdStore.dupLock.RLock()
 	if _, value := mdStore.dupTracker[md.Title]; !value {
@@ -45,6 +48,9 @@ func (mdStore *appMetaDataStore) checkDuplicate(md appMetaData) (err error) {
 	return
 }
 
+//
+// Add new metadata entry to store
+//
 func (mdStore *appMetaDataStore) Add(md appMetaData) (err error) {
 	mdStore.storeLock.Lock()
 	defer mdStore.storeLock.Unlock()
@@ -56,12 +62,18 @@ func (mdStore *appMetaDataStore) Add(md appMetaData) (err error) {
 	return
 }
 
+//
+// Retrieve total number of entries in store
+//
 func (mdStore *appMetaDataStore) TotalEntries() int {
 	mdStore.storeLock.RLock()
 	defer mdStore.storeLock.RUnlock()
 	return len(mdStore.store)
 }
 
+//
+// Retrieve metadata app titles
+//
 func (mdStore *appMetaDataStore) GetAppTitles() (titles []string) {
 	mdStore.storeLock.RLock()
 	defer mdStore.storeLock.RUnlock()
@@ -73,6 +85,9 @@ func (mdStore *appMetaDataStore) GetAppTitles() (titles []string) {
 	return
 }
 
+//
+// Search store and return entires that match the key/value pairs
+//
 func (mdStore *appMetaDataStore) Search(key string, values []string) (md []appMetaData, err error) {
 	mdStore.storeLock.RLock()
 	defer mdStore.storeLock.RUnlock()
@@ -82,6 +97,10 @@ func (mdStore *appMetaDataStore) Search(key string, values []string) (md []appMe
 		return md, err
 	}
 
+	//
+	// Iterate through each store entry and check if
+	// value matches for given key
+	//
 	for _, element := range mdStore.store {
 		for _, v := range values {
 			switch {
@@ -229,6 +248,9 @@ func validateDescription(description string) error {
 	return nil
 }
 
+//
+// Main function for validating app metadata
+//
 func validateAppMetaData(data appMetaData) (err error) {
 	err = validateTitle(data.Title)
 	if err != nil {
@@ -273,6 +295,9 @@ func validateAppMetaData(data appMetaData) (err error) {
 	return err
 }
 
+//
+// Replace underscore for spaces
+//
 func replaceUnderscore(k string, v []string) []string {
 	switch k {
 	case "title":
