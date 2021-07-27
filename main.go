@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 )
 
 const port = "10000"
-const duration = 1 * time.Second // Timeout duration for APIs
+const duration = 5 * time.Second // Timeout duration for APIs
 
 var (
 	dataStore = appMetaDataStore{store: make([]appMetaData, 0), dupTracker: make(map[string]bool)}
@@ -21,64 +22,107 @@ var (
 )
 
 func doCreateNewAppMetaData(ctx context.Context, r *http.Request) error {
-	c := make(chan error, 1)
-	go func() {
+	c := make(chan error)
+	go func(ctx context.Context) {
 		logger.Info("Endpoint Hit: createNewAppMetaData")
 		reqBody, _ := ioutil.ReadAll(r.Body)
 		data := appMetaData{}
-		err := yaml.Unmarshal(reqBody, &data)
-		if err != nil {
-			logger.Warnf("Unable to unmarhsall POST request: %v", err)
-			c <- err
-			return
+		errFunc := yaml.Unmarshal(reqBody, &data)
+		if errFunc != nil {
+			logger.Warnf("Unable to unmarshall POST request: %v", errFunc)
+			goto done
 		}
 		logger.Info("Unmarshalled POST request")
-		err = validateAppMetaData(data)
-		if err != nil {
-			logger.Warnf("Failed to validate app metadata: %v", err)
-			c <- err
-			return
+		errFunc = validateAppMetaData(data)
+		if errFunc != nil {
+			logger.Warnf("Failed to validate app metadata: %v", errFunc)
+			goto done
 		}
-		err = dataStore.Add(data)
-		if err != nil {
-			logger.Warnf("Failed to add app metadata: %v", err)
-			c <- err
-			return
+		select {
+		case <-ctx.Done():
+			errFunc = ctx.Err()
+			goto done
+		default:
+		}
+		errFunc = dataStore.Add(data)
+		if errFunc != nil {
+			logger.Warnf("Failed to add app metadata: %v", errFunc)
+			goto done
 		}
 		logger.Infof("Stored metadata for app '%v'", data.Title)
 		logger.Infof("App metadata store contains %v entries", dataStore.TotalEntries())
-		c <- err
-		return
-	}()
-	select {}
+	done:
+		c <- errFunc
+	}(ctx)
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case err := <-c:
+		return err
+	}
 }
 
 func createNewAppMetaData(w http.ResponseWriter, r *http.Request) {
+	err := doCreateNewAppMetaData(r.Context(), r)
+	if err != nil {
+		logger.Warnf("createNewAppMetaData error: %v", err)
+		internalError := http.StatusInternalServerError
+		http.Error(w, err.Error(), internalError)
+	}
+}
 
+func doGetAppMetaData(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	c := make(chan bool)
+	go func(ctx context.Context) {
+		logger.Info("EndpointHit: getAppMetaData")
+		var metaDataFound bool = false
+		query := r.URL.Query()
+		tmpMetaData := []appMetaData{}
+		encoder := yaml.NewEncoder(w)
+		for k, v := range query {
+			var errFunc error
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+			// Underscore character is treated as a space for certain fields
+			v = replaceUnderscore(k, v)
+			logger.Infof("Query key: %v. Query value: %v.", k, v)
+			tmpMetaData, errFunc = dataStore.Search(k, v)
+			if errFunc == nil {
+				logger.Infof("Found metadata for key %v", k)
+				for _, data := range tmpMetaData {
+					encoder.Encode(data)
+					metaDataFound = true
+				}
+
+			} else {
+				logger.Warnf("Unable to find metadata for key '%v': %v", k, errFunc)
+			}
+		}
+		encoder.Close()
+		c <- metaDataFound
+	}(ctx)
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case result := <-c:
+		if result == true {
+			return nil
+		} else {
+			return errors.New("No metadata found")
+		}
+	}
 }
 
 func getAppMetaData(w http.ResponseWriter, r *http.Request) {
-	logger.Info("EndpointHit: getAppMetaData")
-	query := r.URL.Query()
-	tmpMetaData := []appMetaData{}
-	encoder := yaml.NewEncoder(w)
-	for k, v := range query {
-		var err error
-		// Underscore character is treated as a space for certain fields
-		v = replaceUnderscore(k, v)
-		logger.Infof("Query key: %v. Query value: %v.", k, v)
-		tmpMetaData, err = dataStore.Search(k, v)
-		if err == nil {
-			logger.Infof("Found metadata for key %v", k)
-			for _, data := range tmpMetaData {
-				encoder.Encode(data)
-			}
-
-		} else {
-			logger.Warnf("Unable to find metadata for key '%v': %v", k, err)
-		}
+	err := doGetAppMetaData(r.Context(), w, r)
+	if err != nil {
+		logger.Warnf("getAppMetaData error: %v", err)
+		internalError := http.StatusInternalServerError
+		http.Error(w, err.Error(), internalError)
 	}
-	encoder.Close()
 }
 
 func homePage(w http.ResponseWriter, r *http.Request) {
