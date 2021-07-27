@@ -13,7 +13,7 @@ Below are preqrequisites. Versions listed have been validated.
 ## Building Executable and Running Golang Unit Tests
 Use script "build.sh" in the root directory. This script has three flags:
 * -b : build the server. This uses Docker to build in a container. Output executable is located in the ./bin folder
-* -c : clean. Removes ./bin directory and remoes the Docker build cache
+* -c : clean. Removes ./bin directory and removes the Docker build cache
 * -t : run unit tests. See file "server_test.go" for unit tests.
 
 ## Running the Server
