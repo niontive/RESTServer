@@ -13,13 +13,15 @@ post_metadata() {
          --data-binary @"$1"
 }
 
+trap "exit" INT TERM ERR
+trap "kill 0" EXIT
+
 start_server &
-SERVER_PID=$!
+
+sleep 1
 
 for i in {0..100}
     do
         post_metadata "./yaml/valid1.yaml"
 
 done
-
-kill $SERVER_PID

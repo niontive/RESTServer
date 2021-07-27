@@ -25,8 +25,11 @@ post_metadata() {
          --data-binary @"$1"
 }
 
+trap "exit" INT TERM ERR
+trap "kill 0" EXIT
+
 start_server &
-SERVER_PID=$!
+sleep 1
 
 for file in "${yaml_files[@]}"
 do
@@ -39,5 +42,3 @@ do
     test_get ${title}
     sleep 1
 done
-
-kill $SERVER_PID
