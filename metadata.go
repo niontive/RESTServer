@@ -281,6 +281,8 @@ func replaceUnderscore(k string, v []string) []string {
 		fallthrough
 	case "company":
 		fallthrough
+	case "license":
+		fallthrough
 	case "description":
 		for idx, value := range v {
 			v[idx] = strings.Replace(value, "_", " ", -1)
