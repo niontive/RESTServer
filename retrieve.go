@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"gopkg.in/yaml.v2"
@@ -40,6 +41,8 @@ func doDataStoreSearch(ctx context.Context, k string, v []string) (md []appMetaD
 // Retrieve metadata from metadata store
 //
 func doGetAppMetaData(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	var metaDataFound bool = false
+
 	logger.Info("EndpointHit: getAppMetaData")
 
 	// Retrieve and parse query string
@@ -65,6 +68,7 @@ func doGetAppMetaData(ctx context.Context, w http.ResponseWriter, r *http.Reques
 				if _, test := dupTracker[data.Title]; !test {
 					dupTracker[data.Title] = true
 					encoder.Encode(data)
+					metaDataFound = true
 				}
 			}
 		} else {
@@ -72,6 +76,12 @@ func doGetAppMetaData(ctx context.Context, w http.ResponseWriter, r *http.Reques
 		}
 	}
 	encoder.Close()
+
+	if metaDataFound != true {
+		logger.Warn("No metadata found")
+		internalError := http.StatusInternalServerError
+		http.Error(w, errors.New("No metadata found").Error(), internalError)
+	}
 }
 
 //
