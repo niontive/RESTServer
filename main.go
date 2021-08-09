@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,7 +13,8 @@ import (
 )
 
 const port = "localhost:10000"
-const duration = 5 * time.Second // Timeout duration for APIs
+const duration = 5 * time.Second     // Timeout duration for APIs
+const shutdownTime = 1 * time.Second // Timeout duration for shutdown
 
 var (
 	dataStore = appMetaDataStore{store: make([]appMetaData, 0), dupTracker: make(map[string]bool)}
@@ -59,7 +59,7 @@ func handleRequests() {
 	// Run our server in a goroutine so that it doesn't block.
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
+			logger.Fatalf("Server stopped: %v", err)
 		}
 	}()
 
@@ -72,11 +72,14 @@ func handleRequests() {
 	<-c
 
 	// Create a deadline to wait for
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTime)
 	defer cancel()
 	// Doesn't block if no connections, but will otherwise wait
 	// until the timeout deadline.
-	srv.Shutdown(ctx)
+	err := srv.Shutdown(ctx)
+	if err != nil {
+		logger.Warnf("Shutdown error: %v", err)
+	}
 	logger.Infof("Shutting Down")
 	os.Exit(0)
 }
