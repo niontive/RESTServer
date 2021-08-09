@@ -43,6 +43,12 @@ func doCreateNewAppMetaData(ctx context.Context, w http.ResponseWriter, r *http.
 	var err error
 	logger.Info("Endpoint Hit: createNewAppMetaData")
 
+	// Check if request context is open
+	if ctx.Err() != nil {
+		logger.Warnf("Request context is closed")
+		return
+	}
+
 	// Read and validate request into metadata object
 	reqBody, _ := ioutil.ReadAll(r.Body)
 	data := appMetaData{}
