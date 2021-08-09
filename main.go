@@ -1,15 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
 
-const port = "10000"
+const port = "localhost:10000"
 const duration = 5 * time.Second // Timeout duration for APIs
 
 var (
@@ -44,7 +48,37 @@ func handleRequests() {
 		duration, "Timeout createmetadata\n")).Methods("POST")
 	router.Handle("/getmetadata", http.TimeoutHandler(http.HandlerFunc(getAppMetaData),
 		duration, "Timeout getmetadata\n")).Methods("GET")
-	logger.Fatal(http.ListenAndServe(":"+port, limit(router)))
+
+	srv := &http.Server{
+		Addr:         port,
+		WriteTimeout: time.Second * 15,
+		ReadTimeout:  time.Second * 15,
+		IdleTimeout:  time.Second * 60,
+		Handler:      limit(router),
+	}
+	// Run our server in a goroutine so that it doesn't block.
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Println(err)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	// We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+	// SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
+	signal.Notify(c, os.Interrupt)
+
+	// Block until we receive our signal.
+	<-c
+
+	// Create a deadline to wait for
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+	// Doesn't block if no connections, but will otherwise wait
+	// until the timeout deadline.
+	srv.Shutdown(ctx)
+	logger.Infof("Shutting Down")
+	os.Exit(0)
 }
 
 func main() {
