@@ -35,7 +35,7 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 }
 
 //
-// Create routes for endpoints
+// Create endpoints and start server
 //
 func handleRequests() {
 	router := mux.NewRouter().StrictSlash(true)
